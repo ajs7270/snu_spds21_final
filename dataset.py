@@ -6,7 +6,7 @@ import torch.nn as nn
 
 import natsort
 
-from skimage.color import rgb2gray
+from skimage.color import rgb2gray, rgba2rgb
 import imageio
 
 # Data Loader
@@ -45,19 +45,19 @@ class CustomDataset(torch.utils.data.Dataset):
 
     for sample in data:
       prs_img = imageio.imread(os.path.join(sample[0] + sample[1]))
-      gray_img = rgb2gray(prs_img)
+      gray_img = rgb2gray(rgba2rgb(prs_img))
 
       if gray_img.ndim == 2:
         gray_img = gray_img[:, :, np.newaxis]
 
-      inputImages.append(gray_img.reshape(89, 100, 1))
+      inputImages.append(gray_img.reshape(300, 300, 1))
 
       dir_split = sample[0].split('/')
-      if dir_split[-2] == 'fist':
+      if dir_split[-2] == 'rock':
         outputVectors.append(np.array(0))
-      elif dir_split[-2] == 'palm':
+      elif dir_split[-2] == 'paper':
         outputVectors.append(np.array(1))
-      elif dir_split[-2] == 'swing':
+      elif dir_split[-2] == 'scissors':
         outputVectors.append(np.array(2))
 
     data = {'input': inputImages, 'label': outputVectors}
@@ -72,7 +72,7 @@ class ToTensor(object):
   def __call__(self, data):
     label, input = data['label'], data['input']
 
-    input_tensor = torch.empty(len(input),89,100)
+    input_tensor = torch.empty(len(input),300,300)
     label_tensor = torch.empty(len(input))
     for i in range(len(input)):
       input[i] = input[i].transpose((2, 0, 1)).astype(np.float32)
