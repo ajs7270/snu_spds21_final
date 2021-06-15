@@ -16,13 +16,13 @@ warnings.filterwarnings('ignore')
 
 def train(args):
 
-  num_train = len(os.listdir(os.path.join(args.train_dir, 'fist/'))) + \
-          len(os.listdir(os.path.join(args.train_dir,'palm/'))) + \
-          len(os.listdir(os.path.join(args.train_dir, 'swing')))
+  num_train = len(os.listdir(os.path.join(args.train_dir, 'rock/'))) + \
+          len(os.listdir(os.path.join(args.train_dir,'paper/'))) + \
+          len(os.listdir(os.path.join(args.train_dir, 'scissors/')))
   
-  num_val = len(os.listdir(os.path.join(args.val_dir, 'fist/'))) + \
-          len(os.listdir(os.path.join(args.val_dir, 'palm/'))) + \
-          len(os.listdir(os.path.join(args.val_dir, 'swing/'))) 
+  num_val = len(os.listdir(os.path.join(args.val_dir, 'rock/'))) + \
+          len(os.listdir(os.path.join(args.val_dir, 'paper/'))) + \
+          len(os.listdir(os.path.join(args.val_dir, 'scissors/'))) 
 
   transform = transforms.Compose([ToTensor()])
   dataset_train = CustomDataset(args.train_dir, transform=transform)

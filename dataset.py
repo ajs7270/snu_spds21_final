@@ -12,9 +12,9 @@ import imageio
 # Data Loader
 class CustomDataset(torch.utils.data.Dataset):
   def __init__(self, data_dir, transform=None):#fdir, pdir, sdir, transform=None):
-    self.fist_dir = os.path.join(data_dir,'fist/')
-    self.palm_dir = os.path.join(data_dir,'palm/')
-    self.swing_dir = os.path.join(data_dir,'swing/')
+    self.fist_dir = os.path.join(data_dir,'rock/')
+    self.palm_dir = os.path.join(data_dir,'paper/')
+    self.swing_dir = os.path.join(data_dir,'scissors/')
 
     self.transform = transform
 
