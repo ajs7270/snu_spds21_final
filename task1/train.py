@@ -60,7 +60,7 @@ def train(args):
                         nn.ReLU(),
                         nn.MaxPool2d(kernel_size=1),
                         torch.nn.Flatten(),
-                        nn.Linear(1024, 1000, bias = True),
+                        nn.Linear(64, 1000, bias = True),
                         nn.Dropout(0.8),
                         nn.Linear(1000, 3, bias = True),
                        )

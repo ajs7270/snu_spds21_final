@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+import cv2
 import natsort
 
 from skimage.color import rgb2gray, rgba2rgb
@@ -45,12 +46,13 @@ class CustomDataset(torch.utils.data.Dataset):
 
     for sample in data:
       prs_img = imageio.imread(os.path.join(sample[0] + sample[1]))
-      gray_img = rgb2gray(rgba2rgb(prs_img))
+      resized_img = cv2.resize(prs_img,(89,100))
+      gray_img = rgb2gray(rgba2rgb(resized_img))
 
       if gray_img.ndim == 2:
         gray_img = gray_img[:, :, np.newaxis]
 
-      inputImages.append(gray_img.reshape(300, 300, 1))
+      inputImages.append(gray_img.reshape(89, 100, 1))
 
       dir_split = sample[0].split('/')
       if dir_split[-2] == 'rock':
@@ -72,7 +74,7 @@ class ToTensor(object):
   def __call__(self, data):
     label, input = data['label'], data['input']
 
-    input_tensor = torch.empty(len(input),300,300)
+    input_tensor = torch.empty(len(input),89,100)
     label_tensor = torch.empty(len(input))
     for i in range(len(input)):
       input[i] = input[i].transpose((2, 0, 1)).astype(np.float32)
