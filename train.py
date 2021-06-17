@@ -13,6 +13,10 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
+def init_weights(m):
+        if type(m) == nn.Linear:
+            torch.nn.init.xavier_normal_(m.weight)
+            m.bias.data.fill_(0.01)
 
 def train(args):
 
@@ -56,11 +60,12 @@ def train(args):
                         nn.ReLU(),
                         nn.MaxPool2d(kernel_size=1),
                         torch.nn.Flatten(),
-                        nn.Linear(64, 1000, bias = True),
-                        nn.Dropout(0.75),
+                        nn.Linear(1024, 1000, bias = True),
+                        nn.Dropout(0.8),
                         nn.Linear(1000, 3, bias = True),
                        )
-  
+  model.apply(init_weights)
+
   soft = nn.Softmax(dim=1)
   
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -72,7 +77,7 @@ def train(args):
   criterion = nn.CrossEntropyLoss().to(device)
   
   # Define the optimizer
-  optim = torch.optim.Adam(model.parameters(), lr = 0.001)
+  optim = torch.optim.Adam(model.parameters(), lr = 0.0001)
   
   best_epoch = 0
   accuracy_save = np.array(0)
