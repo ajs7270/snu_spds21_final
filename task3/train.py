@@ -29,11 +29,11 @@ def train(args):
           len(os.listdir(os.path.join(args.val_dir, 'scissors/')))
 
   transform = transforms.Compose([ToTensor()])
-  dataset_train = CustomDataset(args.train_dir, transform=transform)
+  dataset_train = CustomDataset(args.train_dir, transform=transform, is_train=True)
   loader_train = DataLoader(dataset_train, batch_size = args.batchsize, \
           shuffle=True, collate_fn=dataset_train.custom_collate_fn, num_workers=8)
   
-  dataset_val = CustomDataset(args.val_dir, transform=transform)
+  dataset_val = CustomDataset(args.val_dir, transform=transform, is_train=True)
   loader_val = DataLoader(dataset_val, batch_size=num_val, \
           shuffle=True, collate_fn=dataset_val.custom_collate_fn, num_workers=8)
   
@@ -108,7 +108,7 @@ def train(args):
 
           train_loss += [loss.item()]
 
-    accuracy_train = correct_train / (num_train * len(loader_val.lst_aug))
+    accuracy_train = correct_train / (num_train * len(dataset_val.lst_aug))
   
     correct_val = 0
     accuracy_tmp = np.array(0)
@@ -131,7 +131,7 @@ def train(args):
             loss = criterion(output_val, label_val)
             val_loss += [loss.item()]
   
-      accuracy_val = correct_val / (num_val * len(loader_val.lst_aug))
+      accuracy_val = correct_val / (num_val * len(dataset_val.lst_aug))
   
       # Save the best model wrt val accuracy
       accuracy_tmp = accuracy_val.cpu().numpy()
@@ -148,4 +148,4 @@ def train(args):
   print("Best epoch: ", best_epoch)
   print("Best validation accuracy: ", accuracy_save)
   print("Done.")
-    
+

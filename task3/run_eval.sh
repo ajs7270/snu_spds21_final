@@ -12,4 +12,4 @@ echo ${USER}
 eval "$(conda shell.bash hook)"
 conda activate spds078              # Activate your conda environment
 
-srun python eval2.py ../Data/validation/ result.txt  
+srun python evaluate.py ../Data/validation/ result.txt

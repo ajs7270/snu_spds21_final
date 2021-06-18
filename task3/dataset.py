@@ -36,7 +36,8 @@ class CustomDataset(torch.utils.data.Dataset):
     self.lst_prs = natsort.natsorted(lst_fist) + natsort.natsorted(lst_palm) + natsort.natsorted(lst_swing)
     if self.is_train:
       self.lst_aug = self.load_augmentation(lst_aug)
-
+    else:
+      self.lst_aug = range(1)
   def __len__(self):
     return len(self.lst_prs)
 
@@ -56,24 +57,29 @@ class CustomDataset(torch.utils.data.Dataset):
     return result
 
   def custom_collate_fn(self, data):
-
     aug_datas = [{'input':[] , 'label':[], 'filename':[]} for i in range(len(self.lst_aug))]
 
     for sample in data:
-      prs_img = imageio.imread(os.path.join(sample[0] + sample[1]))
+      try :
+        prs_img = imageio.imread(os.path.join(sample[0] + sample[1]))
+      except :
+        continue
       resized_img = cv2.resize(prs_img,(89,100))
       for aug_idx, background_img in enumerate(self.lst_aug):
-        # --② 마스크 생성, 합성할 이미지 전체 영역을 255로 셋팅
-        mask = np.full_like(resized_img, 255)
+        gray_img = None
+        if self.is_train:
+          # --② 마스크 생성, 합성할 이미지 전체 영역을 255로 셋팅
+          mask = np.full_like(resized_img, 255)
 
-        # --③ 합성 대상 좌표 계산(img2의 중앙)
-        height, width, _ = background_img.shape
-        center = (width // 2, height // 2)
+          # --③ 합성 대상 좌표 계산(img2의 중앙)
+          height, width, _ = background_img.shape
+          center = (width // 2, height // 2)
 
-        # --④ seamlessClone 으로 합성
-        aug_img = cv2.seamlessClone(resized_img, background_img, mask, center, cv2.NORMAL_CLONE)
-
-        gray_img = rgb2gray(aug_img)
+          # --④ seamlessClone 으로 합성
+          aug_img = cv2.seamlessClone(resized_img, background_img, mask, center, cv2.NORMAL_CLONE)
+          gray_img = rgb2gray(aug_img)
+        else :
+          gray_img = rgb2gray(resized_img)
 
         if gray_img.ndim == 2:
           gray_img = gray_img[:, :, np.newaxis]
@@ -81,9 +87,9 @@ class CustomDataset(torch.utils.data.Dataset):
         aug_datas[aug_idx]['input'].append(gray_img.reshape(89, 100, 1))
         dir_split = sample[0].split('/')
         if dir_split[-2] in ('r','rock'):
-          aug_datas[aug_idx]['label'].append(np.array(0))
-        elif dir_split[-2] in ('p','paper'):
           aug_datas[aug_idx]['label'].append(np.array(1))
+        elif dir_split[-2] in ('p','paper'):
+          aug_datas[aug_idx]['label'].append(np.array(0))
         elif dir_split[-2] in ('s','scissors'):
           aug_datas[aug_idx]['label'].append(np.array(2))
         aug_datas[aug_idx]['filename'].append(sample[1])
@@ -92,6 +98,9 @@ class CustomDataset(torch.utils.data.Dataset):
     for aug_data in aug_datas:
       if self.transform:
         result.append(self.transform(aug_data))
+
+    if self.is_train == False:
+      result = result[0]
 
     return result
 

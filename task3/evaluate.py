@@ -15,7 +15,7 @@ def main(test_dir, result):
   model_ckpt = './param.data'
 
   transform = transforms.Compose([ToTensor()])
-  dataset_test = CustomDataset(test_dir, transform=transform)
+  dataset_test = CustomDataset(test_dir, transform=transform, is_train=False)
   loader_test = DataLoader(dataset_test, batch_size=num_test, \
           shuffle=True, collate_fn=dataset_test.custom_collate_fn, num_workers=8)
 
@@ -84,8 +84,6 @@ def main(test_dir, result):
 
   f = open(result, "w")
   for i in range(len(fname_test)):
-    print(fname_test)
-    print(i)
     f.write(fname_test[i] + ",")
     f.write(str(label_test_pred[i]) + "\n")
   f.close()
