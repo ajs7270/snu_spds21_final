@@ -12,4 +12,4 @@ echo ${USER}
 eval "$(conda shell.bash hook)"
 conda activate spds078              # Activate your conda environment
 
-srun python main.py --epochs 30
+srun python main.py --epochs 10
