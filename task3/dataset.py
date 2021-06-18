@@ -13,9 +13,9 @@ import imageio
 # Data Loader
 class CustomDataset(torch.utils.data.Dataset):
   def __init__(self, data_dir, transform=None):#fdir, pdir, sdir, transform=None):
-    self.fist_dir = os.path.join(data_dir,'rock/')
-    self.palm_dir = os.path.join(data_dir,'paper/')
-    self.swing_dir = os.path.join(data_dir,'scissors/')
+    self.fist_dir = os.path.join(data_dir,'r/')
+    self.palm_dir = os.path.join(data_dir,'p/')
+    self.swing_dir = os.path.join(data_dir,'s/')
 
     self.transform = transform
 
@@ -23,9 +23,9 @@ class CustomDataset(torch.utils.data.Dataset):
     lst_palm = os.listdir(self.palm_dir)
     lst_swing = os.listdir(self.swing_dir)
 
-    lst_fist = [f for f in lst_fist if f.endswith(".png")]
-    lst_palm = [f for f in lst_palm if f.endswith(".png")]
-    lst_swing = [f for f in lst_swing if f.endswith(".png")]
+    lst_fist = [f for f in lst_fist if f.endswith((".jpg",'.png'))]
+    lst_palm = [f for f in lst_palm if f.endswith((".jpg",'.png'))]
+    lst_swing = [f for f in lst_swing if f.endswith((".jpg",'png'))]
 
     self.lst_dir = [self.fist_dir] * len(lst_fist) + [self.palm_dir] * len(lst_palm) + [self.swing_dir] * len(lst_swing)
     self.lst_prs = natsort.natsorted(lst_fist) + natsort.natsorted(lst_palm) + natsort.natsorted(lst_swing)
@@ -42,12 +42,13 @@ class CustomDataset(torch.utils.data.Dataset):
   def custom_collate_fn(self, data):
 
     inputImages = []
+    fileNames = []
     outputVectors = []
 
     for sample in data:
       prs_img = imageio.imread(os.path.join(sample[0] + sample[1]))
       resized_img = cv2.resize(prs_img,(89,100))
-      gray_img = rgb2gray(rgba2rgb(resized_img))
+      gray_img = rgb2gray(resized_img)
 
       if gray_img.ndim == 2:
         gray_img = gray_img[:, :, np.newaxis]
@@ -55,14 +56,15 @@ class CustomDataset(torch.utils.data.Dataset):
       inputImages.append(gray_img.reshape(89, 100, 1))
 
       dir_split = sample[0].split('/')
-      if dir_split[-2] == 'rock':
+      if dir_split[-2] in ('r','rock'):
         outputVectors.append(np.array(0))
-      elif dir_split[-2] == 'paper':
+      elif dir_split[-2] in ('p','paper'):
         outputVectors.append(np.array(1))
-      elif dir_split[-2] == 'scissors':
+      elif dir_split[-2] in ('s','scissors'):
         outputVectors.append(np.array(2))
 
-    data = {'input': inputImages, 'label': outputVectors}
+      fileNames.append(sample[1])
+    data = {'input': inputImages,'label': outputVectors, 'filename': fileNames}
 
     if self.transform:
       data = self.transform(data)
@@ -72,7 +74,7 @@ class CustomDataset(torch.utils.data.Dataset):
 
 class ToTensor(object):
   def __call__(self, data):
-    label, input = data['label'], data['input']
+    filename, label, input = data['filename'], data['label'], data['input']
 
     input_tensor = torch.empty(len(input),89,100)
     label_tensor = torch.empty(len(input))
@@ -82,7 +84,7 @@ class ToTensor(object):
       label_tensor[i] = torch.from_numpy(label[i])
     input_tensor = torch.unsqueeze(input_tensor, 1)
 
-    data = {'label': label_tensor.long(), 'input': input_tensor}
+    data = {'filename': filename, 'label': label_tensor.long(), 'input': input_tensor}
 
     return data
 

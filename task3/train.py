@@ -20,13 +20,13 @@ def init_weights(m):
 
 def train(args):
 
-  num_train = len(os.listdir(os.path.join(args.train_dir, 'rock/'))) + \
-          len(os.listdir(os.path.join(args.train_dir,'paper/'))) + \
-          len(os.listdir(os.path.join(args.train_dir, 'scissors/')))
+  num_train = len(os.listdir(os.path.join(args.train_dir, 'r/'))) + \
+          len(os.listdir(os.path.join(args.train_dir,'p/'))) + \
+          len(os.listdir(os.path.join(args.train_dir, 's/')))
   
-  num_val = len(os.listdir(os.path.join(args.val_dir, 'rock/'))) + \
-          len(os.listdir(os.path.join(args.val_dir, 'paper/'))) + \
-          len(os.listdir(os.path.join(args.val_dir, 'scissors/'))) 
+  num_val = len(os.listdir(os.path.join(args.val_dir, 'r/'))) + \
+          len(os.listdir(os.path.join(args.val_dir, 'p/'))) + \
+          len(os.listdir(os.path.join(args.val_dir, 's/'))) 
 
   transform = transforms.Compose([ToTensor()])
   dataset_train = CustomDataset(args.train_dir, transform=transform)

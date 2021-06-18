@@ -12,7 +12,6 @@ from dataset import *
 def main(test_dir, result):
   num_test = len(os.listdir(test_dir)) 
 
-  ''' YOU SHOULD SUBMIT param.data FOR THE INFERENCE WITH TEST DATA'''
   model_ckpt = './param.data'
 
   transform = transforms.Compose([ToTensor()])
@@ -44,7 +43,7 @@ def main(test_dir, result):
                         nn.MaxPool2d(kernel_size=1),
                         torch.nn.Flatten(),
                         nn.Linear(64, 1000, bias = True),
-                        nn.Dropout(0.75),
+                        nn.Dropout(0.8),
                         nn.Linear(1000, 3, bias = True),
                         )
 
@@ -60,6 +59,8 @@ def main(test_dir, result):
 
   correct_test = 0
   model.eval()
+  fname_test = []
+  label_test_pred = []
   with torch.no_grad():
     model = model.cuda()
     test_loss = []
@@ -67,10 +68,10 @@ def main(test_dir, result):
     for batch, data in enumerate(loader_test, 1):
 
       input_test = data['input'].to(device)
-      fname_test = data['filename']
+      fname_test += data['filename']
       output_test = model(input_test)
-  
-      label_test_pred = soft(output_test).argmax(1)
+
+      label_test_pred += soft(output_test).argmax(1).cpu().numpy().tolist()
       
   ''' WRITE THE TEST SET PREDICTION RESULT. FOLLOW THE INSTRUCTION BELOW. '''
   # Print one prediction result in a line.
@@ -79,10 +80,12 @@ def main(test_dir, result):
   # 0: Paper, 1: Rock, 2: Scissors
   # See an example file provided in the eTL. Format is VERY IMPORTANT.
  
-  label_test_pred = label_test_pred.cpu().numpy().tolist()
+  #label_test_pred = label_test_pred.cpu().numpy().tolist()
 
   f = open(result, "w")
   for i in range(len(fname_test)):
+    print(fname_test)
+    print(i)
     f.write(fname_test[i] + ",")
     f.write(str(label_test_pred[i]) + "\n")
   f.close()
