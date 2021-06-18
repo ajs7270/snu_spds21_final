@@ -20,13 +20,13 @@ def init_weights(m):
 
 def train(args):
 
-  num_train = len(os.listdir(os.path.join(args.train_dir, 'r/'))) + \
-          len(os.listdir(os.path.join(args.train_dir,'p/'))) + \
-          len(os.listdir(os.path.join(args.train_dir, 's/')))
+  num_train = len(os.listdir(os.path.join(args.train_dir, 'rock/'))) + \
+          len(os.listdir(os.path.join(args.train_dir,'paper/'))) + \
+          len(os.listdir(os.path.join(args.train_dir, 'scissors/')))
   
-  num_val = len(os.listdir(os.path.join(args.val_dir, 'r/'))) + \
-          len(os.listdir(os.path.join(args.val_dir, 'p/'))) + \
-          len(os.listdir(os.path.join(args.val_dir, 's/'))) 
+  num_val = len(os.listdir(os.path.join(args.val_dir, 'rock/'))) + \
+          len(os.listdir(os.path.join(args.val_dir, 'paper/'))) + \
+          len(os.listdir(os.path.join(args.val_dir, 'scissors/')))
 
   transform = transforms.Compose([ToTensor()])
   dataset_train = CustomDataset(args.train_dir, transform=transform)
@@ -89,25 +89,26 @@ def train(args):
     correct_val = 0
     correct_batch = 0
 
-    for batch, data in enumerate(loader_train, 1):
-      label = data['label'].to(device)
-      input = data['input'].to(device)
+    for batch, datas in enumerate(loader_train, 1):
+      for data in datas:
+          label = data['label'].to(device)
+          input = data['input'].to(device)
 
-      output = model(input)
-      label_pred = soft(output).argmax(1)
-  
-      optim.zero_grad()
-  
-      loss = criterion(output, label)
-      loss.backward()
-  
-      optim.step()
-  
-      correct_train += (label == label_pred).float().sum()
-  
-      train_loss += [loss.item()]
+          output = model(input)
+          label_pred = soft(output).argmax(1)
 
-    accuracy_train = correct_train / num_train
+          optim.zero_grad()
+
+          loss = criterion(output, label)
+          loss.backward()
+
+          optim.step()
+
+          correct_train += (label == label_pred).float().sum()
+
+          train_loss += [loss.item()]
+
+    accuracy_train = correct_train / (num_train * len(loader_val.lst_aug))
   
     correct_val = 0
     accuracy_tmp = np.array(0)
@@ -115,21 +116,22 @@ def train(args):
 
       model.eval() 
       val_loss = []
-      for batch, data in enumerate(loader_val, 1):
+      for batch, datas in enumerate(loader_val, 1):
+        for data in datas:
 
-        label_val = data['label'].to(device)
-        input_val = data['input'].to(device)
+            label_val = data['label'].to(device)
+            input_val = data['input'].to(device)
+
+            output_val = model(input_val)
+
+            label_val_pred = soft(output_val).argmax(1)
+
+            correct_val += (label_val == label_val_pred).float().sum()
+
+            loss = criterion(output_val, label_val)
+            val_loss += [loss.item()]
   
-        output_val = model(input_val)
-  
-        label_val_pred = soft(output_val).argmax(1)
-  
-        correct_val += (label_val == label_val_pred).float().sum()
-  
-        loss = criterion(output_val, label_val)
-        val_loss += [loss.item()]
-  
-      accuracy_val = correct_val / num_val
+      accuracy_val = correct_val / (num_val * len(loader_val.lst_aug))
   
       # Save the best model wrt val accuracy
       accuracy_tmp = accuracy_val.cpu().numpy()
